@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -6,11 +7,28 @@ public class PlayerMovement : MonoBehaviour
 
     void Update()
     {
-        float horizontal = Input.GetAxis("Horizontal");
-        float vertical = Input.GetAxis("Vertical");
+        Vector3 movement = Vector3.zero;
 
-        Vector3 movement = new Vector3(horizontal, 0f, vertical);
+        if (Keyboard.current.wKey.isPressed)
+        {
+            movement.z += 1;
+        }
 
-        transform.Translate(movement * speed * Time.deltaTime);
+        if (Keyboard.current.sKey.isPressed)
+        {
+            movement.z -= 1;
+        }
+
+        if (Keyboard.current.aKey.isPressed)
+        {
+            movement.x -= 1;
+        }
+
+        if (Keyboard.current.dKey.isPressed)
+        {
+            movement.x += 1;
+        }
+
+        transform.position += movement.normalized * speed * Time.deltaTime;
     }
 }
