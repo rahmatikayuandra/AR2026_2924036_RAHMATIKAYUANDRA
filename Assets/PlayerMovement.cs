@@ -1,34 +1,46 @@
 using UnityEngine;
-using UnityEngine.InputSystem;
 
+[RequireComponent(typeof(Rigidbody))]
 public class PlayerMovement : MonoBehaviour
 {
-    public float speed = 5f;
+    public float moveSpeed = 3f;
+    public float touchRadius = 120f;
+
+    private Rigidbody rb;
+    private float horizontal;
+    private float vertical;
+    private Vector2 mobileInput;
+    private Vector2 touchStart;
+
+    void Awake() => rb = GetComponent<Rigidbody>();
 
     void Update()
     {
-        Vector3 movement = Vector3.zero;
+        horizontal = Input.GetAxis("Horizontal");
+        vertical = Input.GetAxis("Vertical");
 
-        if (Keyboard.current.wKey.isPressed)
+        if (Input.touchCount > 0)
         {
-            movement.z += 1;
+            Touch touch = Input.GetTouch(0);
+            if (touch.phase == TouchPhase.Began) touchStart = touch.position;
+            if (touch.phase == TouchPhase.Moved || touch.phase == TouchPhase.Stationary)
+                mobileInput = Vector2.ClampMagnitude((touch.position - touchStart) / Mathf.Max(1f, touchRadius), 1f);
+            if (touch.phase == TouchPhase.Ended || touch.phase == TouchPhase.Canceled) mobileInput = Vector2.zero;
         }
 
-        if (Keyboard.current.sKey.isPressed)
+        if (mobileInput.sqrMagnitude > 0.001f)
         {
-            movement.z -= 1;
+            horizontal = mobileInput.x;
+            vertical = mobileInput.y;
         }
-
-        if (Keyboard.current.aKey.isPressed)
-        {
-            movement.x -= 1;
-        }
-
-        if (Keyboard.current.dKey.isPressed)
-        {
-            movement.x += 1;
-        }
-
-        transform.position += movement.normalized * speed * Time.deltaTime;
     }
+
+    void FixedUpdate()
+    {
+        Vector3 direction = new Vector3(horizontal, 0f, vertical).normalized;
+        rb.MovePosition(rb.position + direction * moveSpeed * Time.fixedDeltaTime);
+    }
+
+    public void SetMobileInput(float x, float y) => mobileInput = Vector2.ClampMagnitude(new Vector2(x, y), 1f);
+    public void ClearMobileInput() => mobileInput = Vector2.zero;
 }
